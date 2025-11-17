@@ -6,12 +6,12 @@ A high-performance C++ library for pricing financial derivatives, specifically E
 
 OptionPricer implements several state-of-the-art option pricing algorithms:
 
-| Engine | European | American | Greeks | Features |
-|--------|:--------:|:--------:|:------:|----------|
-| **Black-Scholes Analytical** | ✓ | ✗ | ✓ Analytical | Closed-form solution; instant computation; exact for European vanilla options |
-| **Binomial CRR** | ✓ | ✓ | ✓ Finite diff | Lattice-based tree; handles early exercise; converges to BS; flexible Greeks |
-| **Trinomial Tree** | ✓ | ✓ | ✓ Finite diff | Higher-order lattice; faster convergence than binomial; improved numerical stability |
-| **Monte Carlo European** | ✓ | ✗ | ✗ | Stochastic simulation; statistical confidence intervals; flexible for exotic extensions |
+| Engine | European | American | Greeks |
+|--------|:--------:|:--------:|:------:|
+| **Black-Scholes Analytical** | ✓ | ✗ | ✓ |
+| **Binomial CRR** | ✓ | ✓ | ✓ |
+| **Trinomial Tree** | ✓ | ✓ | ✓ |
+| **Monte Carlo European** | ✓ | ✗ | ✗ |
 
 **Pricing Outputs:** All engines return `PriceOutputs` containing the option value and Greeks (Delta, Gamma, Vega, Theta, Rho) where applicable. Monte Carlo additionally provides standard deviation and standard error estimates.
 
