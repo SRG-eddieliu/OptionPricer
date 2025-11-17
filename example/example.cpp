@@ -1,11 +1,11 @@
 #include <iomanip>
 #include <iostream>
 
-#include "core/Types.hpp"
-#include "engines/BSEuropeanAnalytic.hpp"
-#include "engines/BinomialCRR.hpp"
-#include "engines/MCEuropean.hpp"
-#include "engines/TrinomialTree.hpp"
+#include "../src/core/Types.hpp"
+#include "../src/engines/BSEuropeanAnalytic.hpp"
+#include "../src/engines/BinomialCRR.hpp"
+#include "../src/engines/MCEuropean.hpp"
+#include "../src/engines/TrinomialTree.hpp"
 
 void print_greek(const std::string& label, const engines::PriceOutputs& outputs) {
     std::cout << std::fixed << std::setprecision(6);

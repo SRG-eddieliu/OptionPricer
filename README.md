@@ -6,22 +6,36 @@ A high-performance C++ library for pricing financial derivatives, specifically E
 
 OptionPricer implements several state-of-the-art option pricing algorithms:
 
-- **Black-Scholes Analytical** – Closed-form solution for European vanilla options
-- **Binomial CRR (Cox-Ross-Rubinstein)** – Lattice-based binomial tree for European and American options
-- **Trinomial Tree** – Higher-order trinomial lattice for improved convergence and Greeks computation
-- **Monte Carlo European** – Stochastic simulation for European options with statistical confidence intervals
+| Engine | European | American | Greeks | Features |
+|--------|:--------:|:--------:|:------:|----------|
+| **Black-Scholes Analytical** | ✓ | ✗ | ✓ Analytical | Closed-form solution; instant computation; exact for European vanilla options |
+| **Binomial CRR** | ✓ | ✓ | ✓ Finite diff | Lattice-based tree; handles early exercise; converges to BS; flexible Greeks |
+| **Trinomial Tree** | ✓ | ✓ | ✓ Finite diff | Higher-order lattice; faster convergence than binomial; improved numerical stability |
+| **Monte Carlo European** | ✓ | ✗ | ✗ | Stochastic simulation; statistical confidence intervals; flexible for exotic extensions |
 
-**Design Note — Inheritance & Polymorphism**
+**Pricing Outputs:** All engines return `PriceOutputs` containing the option value and Greeks (Delta, Gamma, Vega, Theta, Rho) where applicable. Monte Carlo additionally provides standard deviation and standard error estimates.
+
+**Design Notes**
+
+*Architecture & Polymorphism*
 - The code uses an abstract base class `PricingEngine` which declares a virtual method `price(const core::OptionSpec&, const core::OptionParams&)`.
 - Concrete engines (`BSEuropeanAnalytic`, `BinomialCRREngine`, `TrinomialTreeEngine`, `MCEuropeanEngine`) inherit from `PricingEngine` and override `price()`.
 
+*Why C++?*
+- **Performance-Critical Workload:** Derivative pricing, especially Monte Carlo simulation, is computationally intensive. C++ offers near-native execution speed without runtime overhead, unlike Python which requires garbage collection and has inherent interpreter latency.
+- **Memory Efficiency:** C++ provides explicit memory control and stack allocation, eliminating the garbage collection pauses that Python imposes. For MC simulations generating hundreds of thousands of price paths, this translates to significantly faster execution with predictable latency.
+- **Industry Standard:** C++ is the lingua franca in quantitative finance and derivative pricing. Most production pricing engines across investment banks and hedge funds are written in C++, making it the de facto choice for high-frequency computational finance.
+
+*Mathematical Libraries*
+- Leverages **Boost C++ Libraries** (`boost::math::distributions::normal`) for robust, well-tested implementations of the standard normal cumulative distribution function (CDF) and probability density function (PDF), avoiding hand-rolled approximations and ensuring numerical accuracy.
 
 ## Project Structure
 
 ```
 OptionPricer/
+├── example/                           # Demo application showcasing all engines
+│   └── example.cpp                    # Demo application (moved from main.cpp)
 ├── src/
-│   ├── main.cpp                       # Demo application showcasing all engines
 │   ├── core/
 │   │   └── Types.hpp                  # Core data structures (OptionSpec, OptionParams, etc.)
 │   ├── engines/
@@ -34,7 +48,7 @@ OptionPricer/
 │       ├── Normal.{hpp,cpp}           # Standard normal distribution utilities
 │       ├── Stats.{hpp,cpp}            # Statistical helpers (mean, variance, etc.)
 ├── output/
-│   └── main                           # Compiled executable
+│   └── example                        # Compiled executable (was "main")
 └── README.md                          # This file
 ```
 
@@ -214,19 +228,24 @@ where $Z_i \sim N(0,1)$.
 
 From the project root:
 ```bash
-mkdir -p output && g++ -std=c++17 -O2 -I"$(brew --prefix boost)/include" $(find ./src -name '*.cpp') ./main.cpp -o output/main
+mkdir -p output && g++ -std=c++20 -O2 -I"$(brew --prefix boost)/include" $(find ./src -name '*.cpp') -o output/main
+```
+
+To build the example application:
+```bash
+mkdir -p output && g++ -std=c++20 -O2 -I"$(brew --prefix boost)/include" $(find ./src -name '*.cpp') ./example/example.cpp -o output/example
 ```
 
 ### Run Demo
 ```bash
-./output/main
+./output/example
 ```
 
 ### Using the Task System (VS Code)
 
 1. Press `Cmd + Shift + B` to run the default build task
 2. Build output goes to `output/main`
-3. Run directly: `./output/main`
+3. For example: `./output/main`
 
 ## Usage Example
 
@@ -280,7 +299,7 @@ int main() {
 
 ## Demo Output Example
 
-Running `./output/main` produces:
+Running `./output/example` produces:
 
 ```text
 Market Parameters: S=100, K=100, r=5%, q=2%, σ=20%, T=1 year
@@ -334,6 +353,14 @@ Steps     Binomial Error      Trinomial Error
     - Delta is computed as `(V(S_up) - V(S_down)) / (S_up - S_down)`
     - Gamma is computed as `2 * ( (V_up - V0) / (S_up - S) - (V0 - V_down) / (S - S_down) ) / (S_up - S_down)`
 
+**v2.0.0 Staging (Current)**
+
+The project structure has been reorganized for v2.0.0:
+- Moved example/demo code from `src/main.cpp` to `example/example.cpp`
+- Separated library code (in `src/`) from demonstration code
+- This enables the library to be used as a standalone component without the demo application
+- Future releases will support installation as a standalone library package
+
 **v2.0.0 Roadmap (Planned Enhancements)**
 
 - Add Least-Squares Monte Carlo (LSMC) to price American options via regression on pathwise continuation values (works within the existing MC framework).
@@ -345,6 +372,7 @@ Steps     Binomial Error      Trinomial Error
     - Multi-level Monte Carlo (MLMC) experimentation
 - Exotic options pricing via MC: Barrier, Asian, lookback 
 - Calibration: Implied vol extraction from market prices
+- Library installation and packaging support
 
 ## References
 
