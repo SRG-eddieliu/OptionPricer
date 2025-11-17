@@ -13,13 +13,16 @@ OptionPricer implements several state-of-the-art option pricing algorithms:
 | **Trinomial Tree** | ✓ | ✓ | ✓ |
 | **Monte Carlo European** | ✓ | ✗ | ✗ |
 
-**Pricing Outputs:** All engines return `PriceOutputs` containing the option value and Greeks (Delta, Gamma, Vega, Theta, Rho) where applicable. Monte Carlo additionally provides standard deviation and standard error estimates.
-
 **Design Notes**
 
 *Architecture & Polymorphism*
 - The code uses an abstract base class `PricingEngine` which declares a virtual method `price(const core::OptionSpec&, const core::OptionParams&)`.
-- Concrete engines (`BSEuropeanAnalytic`, `BinomialCRREngine`, `TrinomialTreeEngine`, `MCEuropeanEngine`) inherit from `PricingEngine` and override `price()`.
+- Concrete engines (`BSEuropeanAnalytic`, `BinomialCRREngine`, `TrinomialTreeEngine`) inherit directly from `PricingEngine` and override `price()`.
+- **Monte Carlo (v2.0.0+):** Introduced an intermediate abstract base class `MCEngine` (child of `PricingEngine`) to consolidate common MC logic and provide a framework for variance reduction techniques:
+  - `MCEuropeanEngine` – Prices European options via path simulation
+  - `MCAmericanLSMCEngine` (skeleton, v2.0.0) – Implements Least-Squares Monte Carlo for American options
+  - Future variants can leverage shared MC infrastructure: exotic options, advanced variance reduction strategies
+- This hierarchical design enables code reuse and supports extensibility while maintaining clean separation of concerns.
 
 *Why C++?*
 - **Performance-Critical Workload:** Derivative pricing, especially Monte Carlo simulation, is computationally intensive. C++ offers near-native execution speed without runtime overhead, unlike Python which requires garbage collection and has inherent interpreter latency.
@@ -43,12 +46,14 @@ OptionPricer/
 │   │   ├── BSEuropeanAnalytic.{hpp,cpp}     # Black-Scholes analytical pricing
 │   │   ├── BinomialCRR.{hpp,cpp}            # Binomial tree engine (CRR model)
 │   │   ├── TrinomialTree.{hpp,cpp}          # Trinomial tree engine
-│   │   └── MCEuropean.{hpp,cpp}             # Monte Carlo engine for European options
+│   │   ├── MCEngine.hpp               # (v2.0.0) Abstract base for Monte Carlo engines
+│   │   ├── MCEuropean.{hpp,cpp}             # Monte Carlo for European options
+│   │   └── MCAmericanLSMC.{hpp,cpp}         # (v2.0.0) LSMC for American options (skeleton)
 │   └── math/
 │       ├── Normal.{hpp,cpp}           # Standard normal distribution utilities
 │       ├── Stats.{hpp,cpp}            # Statistical helpers (mean, variance, etc.)
 ├── output/
-│   └── example                        # Compiled executable (was "main")
+│   └── main                           # Compiled executable
 └── README.md                          # This file
 ```
 
@@ -102,9 +107,7 @@ struct PriceOutputs {
 
 ### 1. Black-Scholes Analytical (BSEuropeanAnalytic)
 
-**Applicability:** European vanilla options only
-
-**Method:** Closed-form solution using the famous Black-Scholes formula:
+**Method:** Closed-form solution using Black-Scholes formula:
 
 $$C = S_0 e^{-qT} N(d_1) - K e^{-rT} N(d_2)$$
 
@@ -115,19 +118,11 @@ where:
 
 **Greeks:** Computed analytically using closed-form derivatives.
 
-**Advantages:**
-- Instantaneous computation
-- Exact for European options (no discretization error)
-- Analytical Greeks available
-
 **Disadvantages:**
 - Cannot price American options
 - Assumes constant volatility and rates
-- No dividend adjustments beyond the q parameter
 
 ### 2. Binomial CRR (BinomialCRREngine)
-
-**Applicability:** Both European and American vanilla options
 
 **Method:** Constructs a discrete recombining binomial tree over $[0, T]$ with $n$ steps.
 
@@ -146,20 +141,10 @@ Backwards induction from maturity to present:
 - Delta: $\frac{V(S + h) - V(S - h)}{2h}$
 - Gamma: $\frac{V(S+h) - 2V(S) + V(S-h)}{h^2}$
 
-**Advantages:**
-- Handles American options (early exercise)
-- Simple to understand and implement
-- Greeks via finite differences
-- Converges to Black-Scholes as $n \to \infty$
-
 **Disadvantages:**
-- Slow convergence (order $O(n^{-1})$)
-- Requires many steps for accuracy
-- Numerical Greeks less stable than analytical
+- Slow convergence, numerical Greeks less stable than analytical
 
 ### 3. Trinomial Tree (TrinomialTreeEngine)
-
-**Applicability:** Both European and American vanilla options
 
 **Method:** Extends binomial to three outcomes per step: up, middle, down.
 
@@ -175,19 +160,7 @@ At each node with step size $\Delta t = T/n$:
 
 **Greeks:** Computed via finite differences (same as binomial).
 
-**Advantages:**
-- Faster convergence than binomial (order $O(n^{-2})$)
-- Fewer steps needed for accuracy
-- Handles American options
-- More stable Greeks estimation
-
-**Disadvantages:**
-- Slightly more complex than binomial
-- Still slower than analytical methods
-
 ### 4. Monte Carlo European (MCEuropeanEngine)
-
-**Applicability:** European vanilla options only
 
 **Method:** Stochastic simulation under the risk-neutral measure:
 
@@ -203,16 +176,8 @@ where $Z_i \sim N(0,1)$.
 3. Discount back: $V = e^{-rT} \times \text{mean(payoffs)}$
 4. Estimate standard error from sample variance
 
-**Advantages:**
-- Very flexible (easily extended to exotic options)
-- No discretization in underlying (only in time)
-- Parallelizable
-
 **Disadvantages:**
-- Slow convergence (order $O(M^{-1/2})$)
-- Requires many paths for accuracy
-- Cannot price American options (path-dependent logic harder)
-- Statistical noise in results
+- Slow convergence, requires many paths for accuracy
 
 ## Building & Running
 
@@ -355,24 +320,35 @@ Steps     Binomial Error      Trinomial Error
 
 **v2.0.0 Staging (Current)**
 
-The project structure has been reorganized for v2.0.0:
+The project has been restructured for v2.0.0 with a focus on **Monte Carlo expansion**:
 - Moved example/demo code from `src/main.cpp` to `example/example.cpp`
 - Separated library code (in `src/`) from demonstration code
+- Introduced hierarchical MC architecture:
+  - `MCEngine`: Abstract base class consolidating common MC logic and variance reduction framework
+  - `MCEuropeanEngine`: Fully functional European option pricer
+  - `MCAmericanLSMCEngine`: Skeleton implementation ready for Longstaff-Schwartz algorithm
 - This enables the library to be used as a standalone component without the demo application
 - Future releases will support installation as a standalone library package
 
-**v2.0.0 Roadmap (Planned Enhancements)**
+**v2.0.0 Roadmap (v2.0.0 Focus: Monte Carlo Enhancements)**
 
-- Add Least-Squares Monte Carlo (LSMC) to price American options via regression on pathwise continuation values (works within the existing MC framework).
-- Add additional Monte Carlo variance-reduction techniques and frameworks:
-    - Control variates (e.g., use analytic European price as control)
-    - Antithetic variates
-    - Importance sampling / stratified sampling
-    - Quasi-Monte Carlo (Sobol, Halton) for lower-discrepancy sampling
-    - Multi-level Monte Carlo (MLMC) experimentation
-- Exotic options pricing via MC: Barrier, Asian, lookback 
-- Calibration: Implied vol extraction from market prices
-- Library installation and packaging support
+*Immediate (Core MC)*
+- Implement full **Least-Squares Monte Carlo (LSMC)** algorithm for American options
+  - Pathwise regression on Laguerre polynomial basis
+  - Early exercise decision logic via continuation value comparison
+  - Integration with variance reduction framework
+
+*Monte Carlo Variance Reduction (Planned)*
+- Control variates (e.g., use analytic European price as control)
+- Antithetic variates
+- Quasi-Monte Carlo (Sobol, Halton sequences) for lower-discrepancy sampling
+- Multi-level Monte Carlo (MLMC) experimentation
+- Importance sampling / stratified sampling
+
+*Future MC Extensions (Post-v2.0.0)*
+- Exotic options pricing: Barrier, Asian, Lookback
+- Calibration: Implied volatility extraction from market prices
+- Library packaging and distribution support
 
 ## References
 
