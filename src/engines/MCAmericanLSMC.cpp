@@ -78,6 +78,7 @@ std::vector<double> regressContinuation(const std::vector<double>& spots,
                                         const std::vector<double>& discounted_cf,
                                         int degree,
                                         double scale) {
+    // Perform least squares regression to find continuation value coefficients
     int deg = std::max(0, degree);
     int cols = deg + 1;
     std::vector<double> coefficients(cols, 0.0);

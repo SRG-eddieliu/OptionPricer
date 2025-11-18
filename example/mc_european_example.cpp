@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "../src/core/Types.hpp"
+#include "../src/engines/BSEuropeanAnalytic.hpp"
 #include "../src/engines/MCEuropean.hpp"
 
 namespace {
@@ -16,12 +17,15 @@ void print_mc(const engines::PriceOutputs& out) {
 
 int main() {
     core::OptionParams params{120.0, 110.0, 0.02, 0.00, 0.15, 2.0};
+    engines::BSEuropeanAnalytic bs;
     engines::MCEuropeanEngine engine(50000, 2024u);
 
     core::OptionSpec call{{params.K, core::OptionType::Call}, core::ExerciseStyle::European};
+    auto analytic = bs.price(call, params);
     auto results = engine.price(call, params);
 
     std::cout << "European Monte Carlo pricing for S=120, K=110, r=2%, q=0%, sigma=15%, T=2 (50k paths)\n";
+    std::cout << "Black-Scholes baseline (analytic): " << std::fixed << std::setprecision(6) << analytic.value << "\n";
     print_mc(results);
 
     return 0;

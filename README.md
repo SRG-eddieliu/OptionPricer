@@ -44,31 +44,39 @@ OptionPricer/
 
 ### Analytical Black–Scholes
 
-- Closed-form calls/puts computed via `S e^{-qT} N(d1) - K e^{-rT} N(d2)` (and the corresponding put symmetry) with Greeks from Boost's normal CDF/PDF helpers.
+- Closed-form calls/puts computed via `S e^{-qT} N(d1) - K e^{-rT} N(d2)` (and the corresponding put symmetry), with `d1 = [\ln(S/K) + (r - q + 0.5 σ^2)T]/(σ\sqrt{T})` and `d2 = d1 - σ\sqrt{T}`.
+- Greeks (Δ, Γ, Θ, ϑ, ρ) come from differentiating the analytic expression; Boost's `N(x)`/`n(x)` keep these derivative terms numerically stable.
 - Degenerate scenarios (`T <= 0`, `σ <= 0`) collapse immediately to intrinsic value so the engine never divides by zero or returns NaNs.
 - Example: [`example/black_scholes_example.md`](example/black_scholes_example.md)
 
-### Binomial & Trinomial Trees
+### Binomial Tree (CRR)
 
-- Recombining lattices approximate the stochastic process over `steps_` discrete dates. Each node compares discounted continuation vs. intrinsic payoff for American options, guaranteeing early-exercise logic identical to textbook CRR/trinomial derivations.
-- Greeks use multiplicative log bumps (`spot * exp(± bump_size_)`) to keep finite-difference spacing symmetric in percentage terms, which behaves better for deep ITM/OTM contracts than additive bumps.
-- The trinomial engine adds a middle node and drift-adjusted probabilities (`pu`, `pm`, `pd`) to accelerate convergence and reduce oscillations relative to the binomial tree.
+- Uses a recombining tree with `Δt = T/steps_`, up factor `u = e^{σ\sqrt{Δt}}`, down factor `d = 1/u`, and risk-neutral probability `p = (e^{(r-q)Δt} - d)/(u - d)`.
+- Terminal payoffs equal intrinsic value; the backward recursion applies `V = e^{-rΔt}[p V_u + (1 - p)V_d]` for Europeans or `max(intrinsic, continuation)` for American exercise.
+- Greeks rely on multiplicative log bumps `S e^{±h}` so the finite-difference spacing is symmetric in percentage terms, which behaves better for deep ITM/OTM contracts.
+- Converges linearly to the Black–Scholes value as `steps_ → ∞`, so thousands of steps may be required for high accuracy.
+- Example: [`example/binomial_trinomial_example.md`](example/binomial_trinomial_example.md)
+
+### Trinomial Tree
+
+- Extends the lattice to three outcomes: up `u = e^{σ\sqrt{3Δt}}`, down `d = 1/u`, and a middle node. Probabilities `p_u`, `p_m`, `p_d` incorporate the drift term `a = r - q - σ^2/2` so that the first two moments of the process match the continuous-time model.
+- Same backward induction and log-bump Greeks as the binomial tree, but the extra branch yields `O(Δt^2)` convergence and smoother Greeks near the strike.
+- Benefits over the binomial tree: fewer steps for the same accuracy, reduced oscillation, and better stability for American exercise near early-exercise boundaries.
 - Example: [`example/binomial_trinomial_example.md`](example/binomial_trinomial_example.md)
 
 ### European Monte Carlo
 
-- Simulates terminal spots `S_T = S_0 * exp((r - q - σ²/2)T + σ√T Z)` with `Z ~ N(0,1)` using `std::mt19937_64` so simulations are reproducible from the configured seed.
-- Each path contributes one discounted payoff (`e^{-rT} * payoff`), and `math::stats` aggregates mean, standard deviation, and standard error.
-- `MCEngine::applyVarianceReduction` is the extensibility point for future control variates, antithetic variates, Sobol sequences, etc., mirroring the roadmap in `RELEASE_NOTES.md` without coupling that logic to any specific engine.
+- Simulates the risk-neutral SDE `dS = (r - q)S dt + σ S dW` using the exact log-normal step `S_T = S_0 \exp((r - q - 0.5σ^2)T + σ\sqrt{T} Z)` with `Z ~ N(0,1)` drawn from `std::mt19937_64`.
+- Each path contributes one discounted payoff `e^{-rT} payoff(S_T)`; `math::stats` aggregates the sample mean (price), standard deviation, and standard error `σ̂/√M`.
+- `MCEngine::applyVarianceReduction` keeps hooks ready for control variates, antithetic variates, Sobol sequences, etc., as outlined in the roadmap.
 - Example: [`example/mc_european_example.md`](example/mc_european_example.md)
 
 ### American Monte Carlo (Longstaff–Schwartz LSMC)
 
-- Paths are generated on a discrete grid of `time_steps_`, with each step advancing `S_t` by `exp((r - q - σ²/2)Δt + σ√Δt Z)`. The outer Monte Carlo loop mirrors `MCEngine`, so seeding and future variance reduction strategies stay centralized.
-- During backward induction, only in-the-money paths participate in the regression of discounted future cash flows; this matches the classic Longstaff–Schwartz procedure and avoids noisy data from deeply out-of-the-money states.
-- `laguerreBasis` produces an orthogonal polynomial basis that behaves well for positive spots; the basis is easy to swap for Chebyshev/Legendre polynomials or even spline bases if a payoff requires it, but Laguerre works well for vanilla payoffs with exponential-like decay.
-- `solveNormalEquations` runs Gaussian elimination with partial pivoting on the normal equations. If the matrix becomes singular/near-singular (for example, too few ITM samples or highly colinear basis vectors), the solver returns `false` and the caller falls back to setting continuation equal to the sample mean—keeping the algorithm numerically stable instead of returning wildly oscillating continuation values.
-- The routine discounts cash flows after each regression step, enforces immediate exercise at `t=0` when intrinsic value dominates, and finally reports the full MC statistics (value, std dev, std error) alongside the binomial reference numbers shown in `src/main.cpp`.
+- Paths live on a discrete grid of `time_steps_` points, each step advancing `S_t` with the same log-normal increment as above.
+- During backward induction, only in-the-money paths contribute to the regression of discounted future cash flows, mirroring the textbook Longstaff–Schwartz routine.
+- `laguerreBasis` evaluates an orthogonal basis at each ITM spot and solves the normal equations `X^T X β = X^T Y` using Gaussian elimination with partial pivoting; if the system is singular, the continuation defaults to the sample mean so that the algorithm doesn't explode.
+- After regressing, cash flows are discounted one step, compared to intrinsic value, and updated if immediate exercise dominates. A final discount to `t=0` plus an intrinsic check ensures early exercise can occur at inception.
 - Example: [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
 
 ## Core Types (excerpt)
