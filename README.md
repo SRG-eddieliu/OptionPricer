@@ -106,7 +106,9 @@ where:
 - $N(\cdot)$ is the cumulative standard normal distribution
 
 **Greeks:** Computed analytically using closed-form derivatives.
+
 **Example:** [`example/black_scholes_example.md`](example/black_scholes_example.md)
+
 
 ### Binomial Tree (CRR)
 
@@ -120,14 +122,15 @@ At each node:
 At maturity ($t = T$), payoff = intrinsic value at each leaf node.
 
 Backwards induction from maturity to present:
-- **European:** $V = e^{-r\Delta t} [p \cdot V_u + (1-p) \cdot V_d]$
-- **American:** $V = \max(\text{intrinsic}, e^{-r\Delta t}[\cdots])$ (early exercise check)
+- European: $V = e^{-r\Delta t} [p \cdot V_u + (1-p) \cdot V_d]$
+- American: $V = \max(\text{intrinsic}, e^{-r\Delta t}[\cdots])$ (early exercise check)
 
 **Greeks:** Computed via finite differences:
 - Delta: $\frac{V(S + h) - V(S - h)}{2h}$
 - Gamma: $\frac{V(S+h) - 2V(S) + V(S-h)}{h^2}$
 
 **Example:** [`example/binomial_example.md`](example/binomial_example.md)
+
 
 ### Trinomial Tree
 
@@ -144,7 +147,9 @@ At each node with step size $\Delta t = T/n$:
   - where $a = r - q - \frac{\sigma^2}{2}$
 
 **Convergence:** Faster and more stable convergence compares to Binomial Tree
+
 **Example:** [`example/trinomial_example.md`](example/trinomial_example.md)
+
 
 ### European Monte Carlo
 
@@ -164,6 +169,7 @@ where $Z_i \sim N(0,1)$.
 
 **Example:**  [`example/mc_european_example.md`](example/mc_european_example.md), [`example/mc_variance_reduction_example.md`](example/mc_variance_reduction_example.md)
 
+
 ### American Monte Carlo (Longstaff–Schwartz LSMC)
 
 **Method:** Same log-normal dynamics as the European engine, but simulated on a grid of exercise dates:
@@ -178,8 +184,23 @@ Working backward from maturity:
 4. Repeat until `t = 0`, then discount once more if needed.
 
 **Laguerre basis:** Evaluate Laguerre polynomials `L_k(\cdot)` on normalized spots so the regression basis stays orthogonal on `[0,\infty)` with an exponential weight, avoiding the coefficient blow-up that raw polynomials suffer for large `S`.
+
 **Normal equations solver:** Solve `(X^\top X)\beta = X^\top Y` via Gaussian elimination with partial pivoting; if the matrix is singular/ill-conditioned (too few ITM samples), the solver reports failure and the algorithm falls back to using the sample mean `\bar{Y}` as the continuation estimate, keeping the process numerically stable.
+
 **Example:** [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
+
+
+### Variance Reduction
+
+#### Antithetic Variates (implemented)
+Pairs each random draw `Z` with its negation `-Z`, averages the paired payoffs, and cuts variance roughly in half for symmetric payoffs. Enabled via `VarianceReductionMethod::AntitheticVariates`; demonstrated in [`example/mc_variance_reduction_example.md`](example/mc_variance_reduction_example.md), which compares plain MC vs. antithetic sampling at multiple path counts.
+
+#### Moment Matching (planned)
+Force the simulated mean/variance of the terminal distribution (or Brownian increments) to equal their theoretical values before pricing. This stabilizes estimates when using modest path counts. Implementation is planned as an additional variance-reduction mode on `BaseMCEngine`.
+
+#### Control Variates (planned)
+Use an analytically-priced instrument (e.g., Black–Scholes call) as a control variate to reduce MC noise: estimate `Price(X) ≈ MC(X) + β (Analytic(Control) - MC(Control))`. Hooks already exist via `BaseMCEngine::applyVarianceReduction`; a future release will add reusable control-variate utilities.
+
 
 ## Build & Run
 
