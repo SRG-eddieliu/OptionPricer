@@ -4,7 +4,6 @@
 #include "../src/core/Types.hpp"
 #include "../src/engines/BSEuropeanAnalytic.hpp"
 #include "../src/engines/BinomialCRR.hpp"
-#include "../src/engines/TrinomialTree.hpp"
 
 namespace {
 
@@ -21,7 +20,6 @@ int main() {
 
     engines::BSEuropeanAnalytic bs;
     engines::BinomialCRREngine binom(2000, 0.0005);
-    engines::TrinomialTreeEngine tri(2000, 0.0005);
 
     core::OptionSpec euro_call{{params.K, core::OptionType::Call}, core::ExerciseStyle::European};
     core::OptionSpec euro_put{{params.K, core::OptionType::Put}, core::ExerciseStyle::European};
@@ -34,40 +32,28 @@ int main() {
     auto bs_put = bs.price(euro_put, params);
 
     auto binom_call = binom.price(euro_call, params);
-    auto tri_call = tri.price(euro_call, params);
+    auto binom_put = binom.price(euro_put, params);
     auto binom_call_amer = binom.price(amer_call, params);
-    auto tri_call_amer = tri.price(amer_call, params);
-
-    auto binom_put_euro = binom.price(euro_put, params);
-    auto tri_put_euro = tri.price(euro_put, params);
     auto binom_put_amer = binom.price(amer_put, params);
-    auto tri_put_amer = tri.price(amer_put, params);
 
-    std::cout << "Binomial vs. Trinomial lattice pricing for S=95, K=100, r=4%, sigma=20%, T=1\n\n";
+    std::cout << "Cox-Ross-Rubinstein binomial pricing for S=95, K=100, r=4%, sigma=20%, T=1\n\n";
     std::cout << "Black-Scholes baseline (European only):\n";
     print_greeks("BS Call", bs_call);
     print_greeks("BS Put", bs_put);
 
-    std::cout << "\nEuropean Call comparison:\n";
+    std::cout << "\nEuropean Call (Binomial vs BS):\n";
     print_greeks("Binomial", binom_call);
-    print_greeks("Trinomial", tri_call);
 
-    std::cout << "\nEuropean Put comparison:\n";
-    print_greeks("Binomial", binom_put_euro);
-    print_greeks("Trinomial", tri_put_euro);
+    std::cout << "\nEuropean Put (Binomial vs BS):\n";
+    print_greeks("Binomial", binom_put);
 
     std::cout << "\nAmerican Call (should match European without dividends):\n";
     print_greeks("Binomial", binom_call_amer);
-    print_greeks("Trinomial", tri_call_amer);
 
     std::cout << "\nAmerican Put (early exercise premium highlighted):\n";
     print_greeks("Binomial", binom_put_amer);
-    print_greeks("Trinomial", tri_put_amer);
-
-    double binom_premium = binom_put_amer.value - binom_put_euro.value;
-    double tri_premium = tri_put_amer.value - tri_put_euro.value;
-    std::cout << "  Early exercise premium (Binomial) : " << std::fixed << std::setprecision(6) << binom_premium << '\n';
-    std::cout << "  Early exercise premium (Trinomial): " << std::fixed << std::setprecision(6) << tri_premium << '\n';
+    double premium = binom_put_amer.value - binom_put.value;
+    std::cout << "  Early exercise premium: " << std::fixed << std::setprecision(6) << premium << '\n';
 
     return 0;
 }

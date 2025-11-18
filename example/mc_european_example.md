@@ -18,7 +18,9 @@ c++ -std=c++20 -O2 -I./src -I"$(brew --prefix boost)/include" example/mc_europea
 ## Output
 
 ```
-European Monte Carlo pricing for S=120, K=110, r=2%, q=0%, sigma=15%, T=2 (50k paths)
-Black-Scholes baseline (analytic): 18.338750
-Value:  18.339413  StdDev:  21.274422  StdErr:   0.095142
+European Monte Carlo pricing (call) for S=120, K=110, r=2%, q=0%, sigma=15%, T=2
+Black-Scholes Call baseline: 18.338750
+MC (50000 paths) | Value:  18.295371  StdDev:  21.222572  StdErr:   0.094910
+MC (75000 paths) | Value:  18.219424  StdDev:  21.101926  StdErr:   0.077053
+MC (100000 paths) | Value:  18.402411  StdDev:  21.264241  StdErr:   0.067243
 ```

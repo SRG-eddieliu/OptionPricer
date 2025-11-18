@@ -127,7 +127,7 @@ Backwards induction from maturity to present:
 - Delta: $\frac{V(S + h) - V(S - h)}{2h}$
 - Gamma: $\frac{V(S+h) - 2V(S) + V(S-h)}{h^2}$
 
-**Example:** [`example/binomial_trinomial_example.md`](example/binomial_trinomial_example.md)
+**Example:** [`example/binomial_example.md`](example/binomial_example.md)
 
 ### Trinomial Tree
 
@@ -144,7 +144,7 @@ At each node with step size $\Delta t = T/n$:
   - where $a = r - q - \frac{\sigma^2}{2}$
 
 **Convergence:** Faster and more stable convergence compares to Binomial Tree
-**Example:** [`example/binomial_trinomial_example.md`](example/binomial_trinomial_example.md)
+**Example:** [`example/trinomial_example.md`](example/trinomial_example.md)
 
 ### European Monte Carlo
 
