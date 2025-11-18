@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <random>
 #include <stdexcept>
 #include <vector>
 
@@ -142,21 +141,13 @@ PriceOutputs MCAmericanLSMCEngine::price(const core::OptionSpec& spec,
     std::size_t steps = std::max<std::size_t>(1, time_steps_);
     double dt = params.T / static_cast<double>(steps);
     double discount = std::exp(-params.r * dt);
-    double drift = (params.r - params.q - 0.5 * params.sig * params.sig) * dt;
-    double diffusion = params.sig * std::sqrt(dt);
     double scale = params.K > 1e-12 ? params.K : std::max(params.S, 1.0);
 
-    std::mt19937_64 rng(seed_);
-    std::normal_distribution<double> standard_normal(0.0, 1.0);
-
-    // Generate paths
-    std::vector<std::vector<double>> paths(paths_, std::vector<double>(steps + 1, params.S));
-    for (std::size_t i = 0; i < paths_; ++i) {
-        for (std::size_t t = 1; t <= steps; ++t) {
-            double z = standard_normal(rng);
-            double prev = paths[i][t - 1];
-            paths[i][t] = prev * std::exp(drift + diffusion * z);
-        }
+    auto paths = generatePaths(params);
+    if (paths.empty()) {
+        PriceOutputs outputs{};
+        outputs.value = spec.payoff(params.S);
+        return outputs;
     }
 
     std::vector<double> cashflows(paths_);

@@ -8,9 +8,7 @@
 
 namespace engines {
 
-// Base class for Monte Carlo pricing engines (European, American LSMC, exotic, etc.).
-class MCEngine : public PricingEngine {
-    
+class BaseMCEngine : public PricingEngine {
    public:
     enum class VarianceReductionMethod {
         None,
@@ -20,32 +18,37 @@ class MCEngine : public PricingEngine {
         Multilevel
     };
 
-    explicit MCEngine(std::size_t paths = 20000,
-                      unsigned int seed = 5489u,
-                      VarianceReductionMethod vr_method = VarianceReductionMethod::None)
-        : paths_(paths), seed_(seed), vr_method_(vr_method) {}
+    explicit BaseMCEngine(std::size_t paths = 20000,
+                          std::size_t time_steps = 1,
+                          std::uint64_t seed = 5489u,
+                          VarianceReductionMethod vr_method = VarianceReductionMethod::None)
+        : paths_(paths),
+          time_steps_(time_steps > 0 ? time_steps : 1),
+          seed_(seed),
+          vr_method_(vr_method) {}
 
-    virtual ~MCEngine() = default;
+    virtual ~BaseMCEngine() = default;
 
     PriceOutputs price(const core::OptionSpec& spec,
                        const core::OptionParams& params) const override = 0;
 
+   protected:
+    std::vector<std::vector<double>> generatePaths(const core::OptionParams& params) const;
+
     virtual void applyVarianceReduction(std::vector<double>& discounted_payoffs,
                                         const core::OptionSpec& spec,
-                                        const core::OptionParams& params) const {
-        (void)discounted_payoffs;
-        (void)spec;
-        (void)params;
-    }
+                                        const core::OptionParams& params) const;
 
     void setVarianceReduction(VarianceReductionMethod method) { vr_method_ = method; }
     VarianceReductionMethod getVarianceReduction() const { return vr_method_; }
+    std::size_t getTimeSteps() const { return time_steps_; }
 
-   protected:
     std::size_t paths_;
-    unsigned int seed_;
+    std::size_t time_steps_;
+    std::uint64_t seed_;
     VarianceReductionMethod vr_method_ = VarianceReductionMethod::None;
+};
 
-};  // class MCEngine
+using VarianceReductionMethod = BaseMCEngine::VarianceReductionMethod;
 
 }  // namespace engines

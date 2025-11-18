@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <tuple>
 
 #include "../src/core/Types.hpp"
 #include "../src/engines/BSEuropeanAnalytic.hpp"

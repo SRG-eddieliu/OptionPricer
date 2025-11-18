@@ -23,22 +23,13 @@ PriceOutputs MCEuropeanEngine::price(const core::OptionSpec& spec,
         return outputs;
     }
 
-    // Initialize RNG
-    std::mt19937_64 rng(seed_);
-    std::normal_distribution<double> standard_normal(0.0, 1.0);
+    auto paths = generatePaths(params);
     std::vector<double> discounted_payoffs;
-    discounted_payoffs.reserve(paths_);
+    discounted_payoffs.reserve(paths.size());
 
-    // Pre-compute constants
-    double drift = (params.r - params.q - 0.5 * params.sig * params.sig) * params.T;
-    double diffusion = params.sig * std::sqrt(params.T);
     double discount = std::exp(-params.r * params.T);
-
-    // Simulate paths and compute payoffs
-    for (std::size_t i = 0; i < paths_; ++i) {
-        double z = standard_normal(rng);
-        double ST = params.S * std::exp(drift + diffusion * z);
-        double payoff = spec.payoff(ST);
+    for (const auto& path : paths) {
+        double payoff = spec.payoff(path.back());
         discounted_payoffs.push_back(discount * payoff);
     }
 
