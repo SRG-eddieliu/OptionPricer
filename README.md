@@ -94,7 +94,7 @@ struct PriceOutputs {
 
 ## Pricing Methodology
 
-### Analytical Black–Scholes
+### <u>Analytical Black–Scholes</u>
 
 **Method:** Closed-form solution using the famous Black-Scholes formula:
 
@@ -110,7 +110,7 @@ where:
 **Example:** [`example/black_scholes_example.md`](example/black_scholes_example.md)
 
 
-### Binomial Tree (CRR)
+### <u>Binomial Tree (CRR)</u>
 
 **Method:** Constructs a discrete recombining binomial tree over $[0, T]$ with $n$ steps.
 
@@ -132,7 +132,7 @@ Backwards induction from maturity to present:
 **Example:** [`example/binomial_example.md`](example/binomial_example.md)
 
 
-### Trinomial Tree
+### <u>Trinomial Tree</u>
 
 **Method:** Extends binomial to three outcomes per step: up, middle, down.
 
@@ -151,7 +151,7 @@ At each node with step size $\Delta t = T/n$:
 **Example:** [`example/trinomial_example.md`](example/trinomial_example.md)
 
 
-### European Monte Carlo
+### <u>European Monte Carlo</u>
 
 **Method:** Stochastic simulation under the risk-neutral measure:
 
@@ -170,7 +170,7 @@ where $Z_i \sim N(0,1)$.
 **Example:**  [`example/mc_european_example.md`](example/mc_european_example.md), [`example/mc_variance_reduction_example.md`](example/mc_variance_reduction_example.md)
 
 
-### American Monte Carlo (Longstaff–Schwartz LSMC)
+### <u>American Monte Carlo (Longstaff–Schwartz LSMC)</u>
 
 **Method:** Same log-normal dynamics as the European engine, but simulated on a grid of exercise dates:
 
@@ -190,7 +190,7 @@ Working backward from maturity:
 **Example:** [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
 
 
-### Variance Reduction
+### <u>Variance Reduction</u>
 
 #### Antithetic Variates (implemented)
 Pairs each random draw `Z` with its negation `-Z`, averages the paired payoffs, and cuts variance roughly in half for symmetric payoffs. Enabled via `VarianceReductionMethod::AntitheticVariates`; demonstrated in [`example/mc_variance_reduction_example.md`](example/mc_variance_reduction_example.md), which compares plain MC vs. antithetic sampling at multiple path counts.
