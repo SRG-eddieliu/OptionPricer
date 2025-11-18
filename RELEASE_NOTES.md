@@ -1,22 +1,5 @@
 # OptionPricer — Release Notes
 
-## v2.0.0 Progress (Unreleased)
-
-- Implemented the full Longstaff–Schwartz Monte Carlo flow for American options in `MCAmericanLSMCEngine` (Laguerre regression, backward induction, early-exercise decisions).
-- README cleanup: concise summary kept in `README.md`, with historical documentation archived in this file.
-
-## v2.0.0 Roadmap (brief)
-
-- Add Least-Squares Monte Carlo (LSMC) to price American options via regression on pathwise continuation values (works within the existing MC framework).
-- Add additional Monte Carlo variance-reduction techniques and frameworks:
-    - Control variates (e.g., use analytic European price as control)
-    - Antithetic variates
-    - Importance sampling / stratified sampling
-    - Quasi-Monte Carlo (Sobol, Halton) for lower-discrepancy sampling
-    - Multi-level Monte Carlo (MLMC) experimentation
-- Exotic options pricing via MC: Barrier, Asian, lookback 
-- Calibration: Implied vol extraction from market prices
-
 ## Appendix — Historical README Snapshot v1.0.0
 
 # OptionPricer
