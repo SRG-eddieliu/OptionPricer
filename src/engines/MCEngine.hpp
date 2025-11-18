@@ -8,43 +8,18 @@
 
 namespace engines {
 
-/**
- * @class MCEngine
- * @brief Abstract base class for Monte Carlo option pricing implementations.
- *
- * Provides common framework for all Monte Carlo variants (European, American LSMC, Exotic).
- * Supports variance reduction techniques that can be applied across all MC methods.
- *
- * Subclasses must implement:
- * - price(): Core MC simulation and payoff evaluation
- * - applyVarianceReduction(): Optional variance reduction techniques
- */
+// Base class for Monte Carlo pricing engines (European, American LSMC, exotic, etc.).
 class MCEngine : public PricingEngine {
-   protected:
-    std::size_t paths_;
-    unsigned int seed_;
-
-    /**
-     * @enum VarianceReductionMethod
-     * @brief Variance reduction techniques applicable to all MC variants.
-     */
+    
+   public:
     enum class VarianceReductionMethod {
-        None,               ///< No variance reduction
-        ControlVariate,     ///< Use analytical price as control
-        AntitheticVariates, ///< Generate paired paths with opposite normals
-        QuasiMonteCarlo,    ///< Use low-discrepancy sequences (Sobol/Halton)
-        Multilevel          ///< Multilevel Monte Carlo
+        None,
+        ControlVariate,
+        AntitheticVariates,
+        QuasiMonteCarlo,
+        Multilevel
     };
 
-    VarianceReductionMethod vr_method_ = VarianceReductionMethod::None;
-
-   public:
-    /**
-     * Constructor for MCEngine.
-     * @param paths Number of Monte Carlo paths to simulate
-     * @param seed Random number generator seed
-     * @param vr_method Variance reduction technique to apply
-     */
     explicit MCEngine(std::size_t paths = 20000,
                       unsigned int seed = 5489u,
                       VarianceReductionMethod vr_method = VarianceReductionMethod::None)
@@ -52,28 +27,24 @@ class MCEngine : public PricingEngine {
 
     virtual ~MCEngine() = default;
 
-    /**
-     * @brief Price an option using Monte Carlo simulation.
-     * Must be implemented by concrete MC variants (European, American LSMC, etc.)
-     */
-    virtual PriceOutputs price(const core::OptionSpec& spec,
-                               const core::OptionParams& params) const override = 0;
+    PriceOutputs price(const core::OptionSpec& spec,
+                       const core::OptionParams& params) const override = 0;
 
-    /**
-     * @brief Apply variance reduction to simulated paths.
-     * Can be overridden by subclasses. Default implementation does nothing.
-     */
     virtual void applyVarianceReduction(std::vector<double>& discounted_payoffs,
                                         const core::OptionSpec& spec,
                                         const core::OptionParams& params) const {
-        // Default: no variance reduction applied
-        // Subclasses can override to implement specific VR techniques
+        (void)discounted_payoffs;
+        (void)spec;
+        (void)params;
     }
 
-    // Setters for variance reduction configuration
     void setVarianceReduction(VarianceReductionMethod method) { vr_method_ = method; }
-
     VarianceReductionMethod getVarianceReduction() const { return vr_method_; }
+
+   protected:
+    std::size_t paths_;
+    unsigned int seed_;
+    VarianceReductionMethod vr_method_ = VarianceReductionMethod::None;
 
 };  // class MCEngine
 
