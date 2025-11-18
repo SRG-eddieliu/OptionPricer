@@ -147,6 +147,7 @@ At each node with step size $\Delta t = T/n$:
 **Example:** [`example/binomial_trinomial_example.md`](example/binomial_trinomial_example.md)
 
 ### European Monte Carlo
+
 **Method:** Stochastic simulation under the risk-neutral measure:
 
 $$dS = (r - q)S\,dt + \sigma S\,dW$$
