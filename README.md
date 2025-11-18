@@ -167,7 +167,7 @@ where $Z_i \sim N(0,1)$.
 3. Discount back: $V = e^{-rT} \times \text{mean(payoffs)}$
 4. Estimate standard error from sample variance
 
-**Example:**  [`example/mc_european_example.md`](example/mc_european_example.md), [`example/mc_variance_reduction_example.md`](example/mc_variance_reduction_example.md)
+**Example:**  [`example/mc_european_example.md`](example/mc_european_example.md)
 
 
 ### <u>American Monte Carlo (Longstaff–Schwartz LSMC)</u>
