@@ -181,7 +181,7 @@ $$S_{t+\Delta t} = S_t \exp\bigl((r-q-\tfrac{1}{2}\sigma^2)\Delta t + \sigma\sqr
 Working backward from maturity:
 
 1. Identify the in-the-money paths at the current exercise date.
-2. Discount their future cash flows one step (`e^{-r\Delta t}`) and regress those discounted payoffs against basis functions of the current spot to estimate continuation.
+2. Discount their future cash flows one step (`e^{-r * Delta_t}`) and regress those discounted payoffs against basis functions of the current spot to estimate continuation.
 3. Overwrite the cash flow with intrinsic value whenever `intrinsic > continuation`.
 4. Repeat until `t = 0`, then discount once more if needed.
 
@@ -189,7 +189,7 @@ Working backward from maturity:
 
 **Normal equations solver:** Solve `(X^\top X)\beta = X^\top Y` via Gaussian elimination with partial pivoting; if the matrix is singular/ill-conditioned (too few ITM samples), the solver reports failure and the algorithm falls back to using the sample mean `\bar{Y}` as the continuation estimate, keeping the process numerically stable.
 
-**Reference:** methodology replicated in spreadsheet for visualization purposes [`referenece/LSMC replication.xlsx`](referenece/LSMC replication.xlsx)
+**Reference:** methodology replicated in spreadsheet for visualization purposes and saved `referenece/LSMC replication.xlsx`
 **Example:** [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
 
 
@@ -200,9 +200,6 @@ Working backward from maturity:
 
 #### Moment Matching
 - Centers/rescales the simulated normal draws so their sample mean and variance match the theoretical `N(0,1)` moments (select `VarianceReductionMethod::MomentMatching`).
-
-#### Antithetic + Moment Matching
-- Combines both techniques (`VarianceReductionMethod::AntitheticMomentMatching`): moment-match the base draws and use each one with its negation. Provides the strongest variance drop for symmetric payoffs.
 
 **Example:** [`example/mc_variance_strategies_example.md`](example/mc_variance_strategies_example.md)
 
