@@ -12,7 +12,7 @@ High-performance C++ library for pricing European and American vanilla options w
 | Monte Carlo (European) | ✓ | ✗ | Value + VR (antithetic/moment) |
 | Monte Carlo LSMC (American) | ✗ | ✓ | Value + VR (antithetic/moment) |
 
-*Variance reduction coverage: antithetic variates, moment matching, and their combined mode via `BaseMCEngine::VarianceReductionMethod`.*
+*Variance reduction support: antithetic variates, moment matching, and their combined mode via `BaseMCEngine::VarianceReductionMethod`.*
 
 ## Architecture Snapshot
 
