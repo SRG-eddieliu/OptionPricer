@@ -9,8 +9,10 @@ High-performance C++ library for pricing European and American vanilla options w
 | Black-Scholes Analytic | ✓ | ✗ | ✓ |
 | Binomial CRR | ✓ | ✓ | ✓ |
 | Trinomial Tree | ✓ | ✓ | ✓ |
-| Monte Carlo (European) | ✓ | ✗ | Std dev/err (VR: antithetic/moment) |
-| Monte Carlo LSMC (American) | ✗ | ✓ | Std dev/err (VR: antithetic/moment) |
+| Monte Carlo (European) | ✓ | ✗ | Value + VR (antithetic/moment) |
+| Monte Carlo LSMC (American) | ✗ | ✓ | Value + VR (antithetic/moment) |
+
+*Variance reduction coverage: antithetic variates, moment matching, and their combined mode via `BaseMCEngine::VarianceReductionMethod`.*
 
 ## Architecture Snapshot
 
