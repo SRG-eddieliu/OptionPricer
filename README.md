@@ -94,7 +94,7 @@ struct PriceOutputs {
 
 ## Pricing Methodology
 
-### <u>Analytical Black–Scholes</u>
+### <span style="text-decoration:underline;">Analytical Black–Scholes</span>
 
 **Method:** Closed-form solution using the famous Black-Scholes formula:
 
@@ -110,7 +110,7 @@ where:
 **Example:** [`example/black_scholes_example.md`](example/black_scholes_example.md)
 
 
-### <u>Binomial Tree (CRR)</u>
+### <span style="text-decoration:underline;">Binomial Tree (CRR)</span>
 
 **Method:** Constructs a discrete recombining binomial tree over $[0, T]$ with $n$ steps.
 
@@ -132,7 +132,7 @@ Backwards induction from maturity to present:
 **Example:** [`example/binomial_example.md`](example/binomial_example.md)
 
 
-### <u>Trinomial Tree</u>
+### <span style="text-decoration:underline;">Trinomial Tree</span>
 
 **Method:** Extends binomial to three outcomes per step: up, middle, down.
 
@@ -151,7 +151,7 @@ At each node with step size $\Delta t = T/n$:
 **Example:** [`example/trinomial_example.md`](example/trinomial_example.md)
 
 
-### <u>European Monte Carlo</u>
+### <span style="text-decoration:underline;">European Monte Carlo</span>
 
 **Method:** Stochastic simulation under the risk-neutral measure:
 
@@ -170,7 +170,7 @@ where $Z_i \sim N(0,1)$.
 **Example:**  [`example/mc_european_example.md`](example/mc_european_example.md)
 
 
-### <u>American Monte Carlo (Longstaff–Schwartz LSMC)</u>
+### <span style="text-decoration:underline;">American Monte Carlo (Longstaff–Schwartz LSMC)</span>
 
 **Method:** Same log-normal dynamics as the European engine, but simulated on a grid of exercise dates:
 
@@ -183,14 +183,14 @@ Working backward from maturity:
 3. Overwrite the cash flow with intrinsic value whenever `intrinsic > continuation`.
 4. Repeat until `t = 0`, then discount once more if needed.
 
-**Laguerre basis:** Evaluate Laguerre polynomials `L_k(\cdot)` on normalized spots so the regression basis stays orthogonal on `[0,\infty)` with an exponential weight, avoiding the coefficient blow-up that raw polynomials suffer for large `S`.
+**Laguerre basis:** Evaluate Laguerre polynomials on normalized spots avoiding the coefficient blow-up that raw polynomials suffer for large `S`.
 
 **Normal equations solver:** Solve `(X^\top X)\beta = X^\top Y` via Gaussian elimination with partial pivoting; if the matrix is singular/ill-conditioned (too few ITM samples), the solver reports failure and the algorithm falls back to using the sample mean `\bar{Y}` as the continuation estimate, keeping the process numerically stable.
 
 **Example:** [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
 
 
-### <u>Variance Reduction</u>
+### <span style="text-decoration:underline;">Variance Reduction</span>
 
 #### Antithetic Variates
 - Pairs each random draw `Z` with its negation `-Z`, averages the paired payoffs (enabled via `VarianceReductionMethod::AntitheticVariates`), and reduces variance for symmetric payoffs.
