@@ -53,7 +53,7 @@ int main() {
               << ", q=" << euro_params.q << ", sigma=" << euro_params.sig << ", T=" << euro_params.T << "\n";
     std::cout << "Black-Scholes baseline: " << std::fixed << std::setprecision(6) << bs_call.value << "\n\n";
 
-    for (std::size_t paths : {30000u, 60000u}) {
+    for (std::size_t paths : {30000u, 60000u, 90000u}) {
         std::cout << "-- Paths: " << paths << " --\n";
         print_mc("Plain MC", run_euro(paths, 8000u + paths, VR::None, euro_call, euro_params));
         print_mc("MC + Antithetic",
@@ -76,7 +76,7 @@ int main() {
               << ", q=" << amer_params.q << ", sigma=" << amer_params.sig << ", T=" << amer_params.T << "\n";
     std::cout << "Binomial baseline: " << std::fixed << std::setprecision(6) << binom_put.value << "\n\n";
 
-    for (std::size_t paths : {40000u, 80000u}) {
+    for (std::size_t paths : {50000u, 100000u, 150000u}) {
         std::cout << "-- Paths: " << paths << " --\n";
         print_mc("Plain MC", run_amer(paths, 75, 8400u + paths, VR::None, amer_put, amer_params));
         print_mc("MC + Antithetic",
