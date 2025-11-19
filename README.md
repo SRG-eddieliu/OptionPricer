@@ -189,6 +189,7 @@ Working backward from maturity:
 
 **Normal equations solver:** Solve `(X^\top X)\beta = X^\top Y` via Gaussian elimination with partial pivoting; if the matrix is singular/ill-conditioned (too few ITM samples), the solver reports failure and the algorithm falls back to using the sample mean `\bar{Y}` as the continuation estimate, keeping the process numerically stable.
 
+**Reference:** methodology replicated in spreadsheet for visualization purposes [`referenece/LSMC replication.xlsx`](referenece/LSMC replication.xlsx)
 **Example:** [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
 
 
@@ -223,3 +224,7 @@ c++ -std=c++20 -O2 -I"$(brew --prefix boost)/include" $(find ./src -name '*.cpp'
 ## Historical README
 
 The previous long-form README has been archived under "Appendix — Historical README Snapshot (pre-cleanup)" in `RELEASE_NOTES.md`. This keeps the same information available while keeping the project root documentation concise.
+
+## License
+
+OptionPricer is distributed under the terms of the [MIT License](LICENSE).
