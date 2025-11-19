@@ -23,7 +23,7 @@ High-performance C++ library for pricing European and American vanilla options w
 *Why C++?*
 - **Performance-Critical Workload:** Derivative pricing, especially Monte Carlo simulation, is computationally intensive. C++ offers near-native execution speed without runtime overhead, unlike Python which requires garbage collection and has inherent interpreter latency.
 - **Memory Efficiency:** C++ provides explicit memory control and stack allocation, eliminating the garbage collection pauses that Python imposes. For MC simulations generating hundreds of thousands of price paths, this translates to significantly faster execution with predictable latency.
-- **Industry Standard:** C++ is the lingua franca in quantitative finance and derivative pricing. Most production pricing engines across investment banks and hedge funds are written in C++, making it the de facto choice for high-frequency computational finance.
+- **Industry Standard:** C++ is widely used in quantitative finance and derivative pricing. Most production pricing engines across banks and hedge funds are written in C++, making it the natural choice for high-frequency computational finance.
 
 *Mathematical Libraries*
 - Leverages **Boost C++ Libraries** (`boost::math::distributions::normal`) for robust, well-tested implementations of the standard normal cumulative distribution function (CDF) and probability density function (PDF), avoiding hand-rolled approximations and ensuring numerical accuracy.
