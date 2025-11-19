@@ -192,14 +192,16 @@ Working backward from maturity:
 
 ### <u>Variance Reduction</u>
 
-#### Antithetic Variates (implemented)
-Pairs each random draw `Z` with its negation `-Z`, averages the paired payoffs, and cuts variance roughly in half for symmetric payoffs. Enabled via `VarianceReductionMethod::AntitheticVariates`; demonstrated in [`example/mc_variance_reduction_example.md`](example/mc_variance_reduction_example.md), which compares plain MC vs. antithetic sampling at multiple path counts.
+#### Antithetic Variates
+- Pairs each random draw `Z` with its negation `-Z`, averages the paired payoffs (enabled via `VarianceReductionMethod::AntitheticVariates`), and reduces variance for symmetric payoffs.
 
-#### Moment Matching (planned)
-Force the simulated mean/variance of the terminal distribution (or Brownian increments) to equal their theoretical values before pricing. This stabilizes estimates when using modest path counts. Implementation is planned as an additional variance-reduction mode on `BaseMCEngine`.
+#### Moment Matching
+- Centers/rescales the simulated normal draws so their sample mean and variance match the theoretical `N(0,1)` moments (select `VarianceReductionMethod::MomentMatching`).
 
-#### Control Variates (planned)
-Use an analytically-priced instrument (e.g., Black–Scholes call) as a control variate to reduce MC noise: estimate `Price(X) ≈ MC(X) + β (Analytic(Control) - MC(Control))`. Hooks already exist via `BaseMCEngine::applyVarianceReduction`; a future release will add reusable control-variate utilities.
+#### Antithetic + Moment Matching
+- Combines both techniques (`VarianceReductionMethod::AntitheticMomentMatching`): moment-match the base draws and use each one with its negation. Provides the strongest variance drop for symmetric payoffs.
+
+**Example:** [`example/mc_variance_strategies_example.md`](example/mc_variance_strategies_example.md)
 
 
 ## Build & Run
@@ -212,21 +214,9 @@ mkdir -p output
 c++ -std=c++20 -O2 -I"$(brew --prefix boost)/include" $(find ./src -name '*.cpp') -o output/main
 ```
 
-## Usage Example
-
-```cpp
-core::OptionParams params{100.0, 100.0, 0.05, 0.02, 0.20, 1.0};
-core::OptionSpec call{{params.K, core::OptionType::Call}, core::ExerciseStyle::European};
-
-engines::BSEuropeanAnalytic bs;
-auto bs_px = bs.price(call, params);
-
-engines::BinomialCRREngine tree(4000);
-auto tree_px = tree.price(call, params);
-
-core::OptionSpec amer_put{{params.K, core::OptionType::Put}, core::ExerciseStyle::American};
-auto amer_px = tree.price(amer_put, params);
-```
+## Future Development
+- Greek in MC with various variance reduction method like likelihood
+- Other path dependent exotic option pricing engine
 
 ## Historical README
 

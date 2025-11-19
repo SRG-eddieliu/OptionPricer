@@ -12,8 +12,9 @@ class BaseMCEngine : public PricingEngine {
    public:
     enum class VarianceReductionMethod {
         None,
-        ControlVariate,
         AntitheticVariates,
+        MomentMatching,
+        AntitheticMomentMatching,
         QuasiMonteCarlo,
         Multilevel
     };
