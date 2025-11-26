@@ -204,6 +204,7 @@ Working backward from maturity:
 **Normal equations solver:** Solve $(X^\top X)\beta = X^\top Y$ via Gaussian elimination with partial pivoting; fall back to the sample mean $\bar{Y}$ when the system is singular/ill-conditioned.
 
 **Example:** [`example/mc_american_lsmc_example.md`](example/mc_american_lsmc_example.md)
+**Reference replication:** See [`reference/LSMC replication.xlsx`](reference/LSMC%20replication.xlsx) for an Excel replication of the methodology used here for illustration purposes.
 
 
 ### <span style="text-decoration:underline;">Path-Dependent Monte Carlo (Asian/Barrier/Lookback)</span>
