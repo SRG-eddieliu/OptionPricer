@@ -214,6 +214,9 @@ Working backward from maturity:
 - **Arithmetic Asian:** arithmetic average $\bar{S}$ compared against $K$.
 - **Barrier:** tracks barrier hits (Up/Down × In/Out) before applying the terminal payoff.
 - **Lookback:** computes payoffs from the running maximum/minimum across the path.
+- **Path generation details:** full GBM paths of length `time_steps + 1` (default 75) are simulated with
+  $$S_{t+\Delta t} = S_t \exp\bigl((r-q-\tfrac{1}{2}\sigma^2)\Delta t + \sigma\sqrt{\Delta t}\,Z\bigr).$$
+- **Discounting:** each path payoff is discounted by $e^{-rT}$ before averaging.
 
 **Example:** [`example/mc_path_exotics_example.md`](example/mc_path_exotics_example.md)
 
@@ -225,6 +228,8 @@ Working backward from maturity:
 
 #### Moment Matching
 - Centers/rescales the simulated normal draws so their sample mean and variance match the theoretical `N(0,1)` moments (select `VarianceReductionMethod::MomentMatching`).
+- Implementation detail: pre-generate all $Z$ draws for the run, compute the sample mean and standard deviation, then normalize each draw with $z \leftarrow (z - \bar{z}) / s$ before using them in the path loop (also applies when combined with antithetic sampling).
+- Rationale: finite samples from `N(0,1)` do not have exact mean 0 or variance 1, so moment matching removes that sampling drift (at the cost of inducing dependence across draws) to reduce estimator variance.
 
 **Example:** [`example/mc_variance_strategies_example.md`](example/mc_variance_strategies_example.md)
 
