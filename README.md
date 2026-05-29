@@ -1,6 +1,17 @@
 # OptionPricer
 
-High-performance C++ library for pricing European and American vanilla options with analytical, lattice, and Monte Carlo engines.
+Status: public demo-ready quant engineering project.
+
+OptionPricer is a C++20 derivatives pricing library for European, American, and path-dependent options. It demonstrates production-style pricing abstractions, numerical methods, Monte Carlo simulation, variance reduction, and reproducible examples.
+
+## What This Demonstrates
+
+- Derivatives pricing architecture built around reusable pricing engines.
+- Analytical, lattice, and Monte Carlo methods implemented behind a common interface.
+- American option pricing through Longstaff-Schwartz least-squares Monte Carlo.
+- Path-dependent payoff support for Asian, barrier, and lookback options.
+- Variance reduction through antithetic variates and moment matching.
+- C++ engineering practices: typed domain objects, modular engines, examples, CMake build, and MIT licensing.
 
 ## Feature Matrix
 
@@ -238,15 +249,29 @@ Working backward from maturity:
 
 Prerequisites: C++20 compiler (clang++/g++), Boost headers for normal CDF/PDF implementations.
 
+### CMake
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/option_pricer_demo
+./build/black_scholes_example
+```
+
+### One-command script
+
 ```bash
 brew install boost
-mkdir -p output
-c++ -std=c++20 -O2 -I"$(brew --prefix boost)/include" $(find ./src -name '*.cpp') -o output/main
+./scripts/build_main.sh
+./output/main
 ```
 
 ## Future Development
-- Greek in MC with various variance reduction method like likelihood
-- Other path dependent exotic option pricing engine
+
+- Monte Carlo Greeks through pathwise, likelihood-ratio, and bump-and-revalue estimators.
+- Additional exotic payoff families and calibration examples.
+- Unit tests and numerical regression tests against benchmark values.
+- Python bindings for research workflows.
 
 ## Historical README
 
