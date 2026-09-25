@@ -2,7 +2,9 @@
 
 A C++20 derivatives pricing project covering analytical formulas, lattice methods, and Monte Carlo simulation.
 
-**Status:** engineering project with CMake targets and worked examples. A comprehensive automated numerical regression suite is still planned; this is not a production-validated pricing library.
+**Status:** C++20 engineering project with worked examples and 11 automated numerical regression cases. CI builds and tests on Linux and macOS. This is not a production-validated pricing library.
+
+[![Numerical validation](https://github.com/SRG-eddieliu/OptionPricer/actions/workflows/numerical.yml/badge.svg)](https://github.com/SRG-eddieliu/OptionPricer/actions/workflows/numerical.yml)
 
 ## Implemented Methods
 
@@ -23,6 +25,7 @@ Requires CMake 3.20 or newer, a C++20 compiler, and Boost headers.
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
+ctest --test-dir build --output-on-failure
 ./build/option_pricer_demo
 ./build/black_scholes_example
 ```
@@ -41,15 +44,21 @@ On macOS, Boost can be installed with `brew install boost`. The existing [build 
 
 The project is intended to make numerical methods and implementation tradeoffs inspectable. Example outputs are demonstrations, not a substitute for independent accuracy and convergence checks.
 
-## Validation Priorities
+## Numerical Validation
 
-- Compare vanilla prices and Greeks against analytical benchmarks and finite-difference checks.
-- Test tree convergence and American/European consistency cases.
-- Check Monte Carlo confidence intervals and variance-reduction behavior across seeds.
-- Validate LSMC estimates against independent reference values and inspect regression stability.
-- Test boundary cases, invalid inputs, and discretization sensitivity for path-dependent payoffs.
+The [Boost.Test suite](tests/numerical_tests.cpp) checks analytical reference prices,
+put-call parity, price bounds, finite-difference Greeks, tree convergence,
+American/European consistency, zero-volatility/expiry behavior, invalid inputs,
+eight-seed European MC error bounds, 32-seed variance-reduction comparisons,
+LSMC's time-zero decision, an American-put tree reference, and barrier in/out parity.
 
-These items describe planned validation work, not tests already passing in this repository.
+These tests exposed and now protect fixes for deterministic discounting, silent
+tree-probability clipping, and a pathwise time-zero exercise decision in LSMC.
+Moment-matched paths and in-sample LSMC do not support the naive IID standard-error
+formula; their `std_error` is now `NaN`, not a purported confidence interval.
+
+See [validation scope and conventions](docs/validation.md) for tolerances,
+parameter restrictions, unimplemented Greeks, and remaining limitations.
 
 ## Further Reading
 

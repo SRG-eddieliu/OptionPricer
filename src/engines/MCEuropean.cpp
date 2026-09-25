@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "math/Stats.hpp"
+#include "core/Validation.hpp"
 
 namespace engines {
 
@@ -15,11 +16,13 @@ PriceOutputs MCEuropeanEngine::price(const core::OptionSpec& spec,
     if (spec.exercise != core::ExerciseStyle::European) {
         throw std::invalid_argument("MCEuropeanEngine: European exercise style required");
     }
+    core::validate_strike(spec.payoff.strike, params);
+    validateConfiguration();
 
     // Handle edge cases (zero time or zero volatility)
     if (params.T <= 0.0 || params.sig <= 0.0) {
         PriceOutputs outputs{};
-        outputs.value = spec.payoff(params.S);
+        outputs.value = core::deterministic_value(spec, params, params.S);
         return outputs;
     }
 
@@ -40,7 +43,7 @@ PriceOutputs MCEuropeanEngine::price(const core::OptionSpec& spec,
     PriceOutputs outputs{};
     outputs.value = math::stats::mean(discounted_payoffs);
     outputs.std_dev = math::stats::standard_deviation(discounted_payoffs);
-    outputs.std_error = math::stats::standard_error(discounted_payoffs);
+    outputs.std_error = payoffStandardError(discounted_payoffs);
 
     return outputs;
 }

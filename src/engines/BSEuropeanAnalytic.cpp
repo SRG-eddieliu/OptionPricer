@@ -2,28 +2,26 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <limits>
 
 #include "math/Normal.hpp"
+#include "core/Validation.hpp"
 
 namespace engines {
-namespace {
-
-double intrinsic_value(const core::OptionSpec& spec, double spot) {
-    return spec.payoff(spot);
-}
-
-}
 
 PriceOutputs BSEuropeanAnalytic::price(const core::OptionSpec& spec,
                                        const core::OptionParams& params) const {
     if (spec.exercise != core::ExerciseStyle::European) {
         throw std::invalid_argument("Black-Scholes engine requires European exercise");
     }
+    core::validate_strike(spec.payoff.strike, params);
 
     PriceOutputs outputs{};
 
     if (params.T <= 0.0 || params.sig <= 0.0) {
-        outputs.value = intrinsic_value(spec, params.S);
+        outputs.value = core::deterministic_value(spec, params, params.S);
+        outputs.delta = outputs.gamma = outputs.vega = outputs.theta = outputs.rho =
+            std::numeric_limits<double>::quiet_NaN();
         return outputs;
     }
 

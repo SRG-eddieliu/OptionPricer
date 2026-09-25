@@ -4,6 +4,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+#include "core/Validation.hpp"
 
 namespace engines {
 
@@ -14,15 +15,15 @@ constexpr double SQRT3 = 1.7320508075688772;
 double TrinomialTreeEngine::value_from_tree(const core::OptionSpec& spec,
                                             const core::OptionParams& params,
                                             double spot) const {
-    if (steps_ == 0 || params.T <= 0.0 || params.sig <= 0.0) {
+    if (steps_ == 0 || params.T <= 0.0) {
         return spec.payoff(spot);
     }
+    if (params.sig == 0.0) return core::deterministic_value(spec, params, spot, steps_);
 
     double dt = params.T / static_cast<double>(steps_);
     double sqrt_dt = std::sqrt(dt);
     double disc = std::exp(-params.r * dt);
     double u = std::exp(params.sig * std::sqrt(3.0 * dt));
-    double d = 1.0 / u;
 
     double drift = params.r - params.q;
     double a = drift - 0.5 * params.sig * params.sig;
@@ -30,17 +31,8 @@ double TrinomialTreeEngine::value_from_tree(const core::OptionSpec& spec,
     double pd = 1.0 / 6.0 - (a * sqrt_dt) / (2.0 * params.sig * SQRT3);
     double pm = 1.0 - pu - pd;
 
-    pu = std::max(0.0, pu);
-    pd = std::max(0.0, pd);
-    pm = std::max(0.0, pm);
-    double sum = pu + pm + pd;
-    if (sum == 0.0) {
-        pu = pd = 0.25;
-        pm = 0.5;
-    } else {
-        pu /= sum;
-        pm /= sum;
-        pd /= sum;
+    if (!std::isfinite(pu) || !std::isfinite(pd) || pu < 0 || pd < 0 || pm < 0) {
+        throw std::invalid_argument("Invalid trinomial probabilities; increase steps or revise inputs");
     }
 
     int size = static_cast<int>(2 * steps_ + 1);
@@ -76,6 +68,7 @@ double TrinomialTreeEngine::value_from_tree(const core::OptionSpec& spec,
 
 PriceOutputs TrinomialTreeEngine::price(const core::OptionSpec& spec,
                                         const core::OptionParams& params) const {
+    core::validate_strike(spec.payoff.strike, params);
     if (steps_ == 0) {
         throw std::invalid_argument("Trinomial engine requires at least one step");
     }

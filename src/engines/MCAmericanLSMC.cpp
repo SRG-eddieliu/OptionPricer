@@ -4,8 +4,10 @@
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+#include <limits>
 
 #include "math/Stats.hpp"
+#include "core/Validation.hpp"
 
 namespace engines {
 
@@ -130,11 +132,14 @@ PriceOutputs MCAmericanLSMCEngine::price(const core::OptionSpec& spec,
     if (spec.exercise != core::ExerciseStyle::American) {
         throw std::invalid_argument("MCAmericanLSMCEngine: American exercise style required");
     }
+    core::validate_strike(spec.payoff.strike, params);
+    validateConfiguration();
+    if (polynomial_degree_ < 0) throw std::invalid_argument("Polynomial degree must be nonnegative");
 
     // Handle edge cases
     if (params.T <= 0.0 || params.sig <= 0.0) {
         PriceOutputs outputs{};
-        outputs.value = spec.payoff(params.S);
+        outputs.value = core::deterministic_value(spec, params, params.S, time_steps_);
         return outputs;
     }
 
@@ -202,20 +207,14 @@ PriceOutputs MCAmericanLSMCEngine::price(const core::OptionSpec& spec,
     }
 
     double intrinsic_now = spec.payoff(params.S);
-    if (intrinsic_now > 0.0) {
-        for (double& cf : cashflows) {
-            if (intrinsic_now > cf) {
-                cf = intrinsic_now;
-            }
-        }
-    }
-
     applyVarianceReduction(cashflows, spec, params);
 
     PriceOutputs outputs{};
-    outputs.value = math::stats::mean(cashflows);
+    // One time-zero decision, shared by every path, cannot use future path outcomes.
+    outputs.value = std::max(intrinsic_now, math::stats::mean(cashflows));
     outputs.std_dev = math::stats::standard_deviation(cashflows);
-    outputs.std_error = math::stats::standard_error(cashflows);
+    // The exercise policy is fitted on these same paths, so an IID payoff CI is invalid.
+    outputs.std_error = std::numeric_limits<double>::quiet_NaN();
     return outputs;
 }
 

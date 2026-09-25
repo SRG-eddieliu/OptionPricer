@@ -4,6 +4,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+#include "core/Validation.hpp"
 
 namespace engines {
 
@@ -13,6 +14,7 @@ double BinomialCRREngine::value_from_tree(const core::OptionSpec& spec,
     if (steps_ == 0 || params.T <= 0.0) {
         return spec.payoff(spot);
     }
+    if (params.sig == 0.0) return core::deterministic_value(spec, params, spot, steps_);
 
     double dt = params.T / static_cast<double>(steps_);
     double u = std::exp(params.sig * std::sqrt(dt));
@@ -20,7 +22,9 @@ double BinomialCRREngine::value_from_tree(const core::OptionSpec& spec,
     double disc = std::exp(-params.r * dt);
     double drift = std::exp((params.r - params.q) * dt);
     double p = (drift - d) / (u - d);
-    p = std::clamp(p, 0.0, 1.0);
+    if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
+        throw std::invalid_argument("Invalid CRR probability; increase steps or revise inputs");
+    }
 
     std::vector<double> option_values(steps_ + 1);
 
@@ -51,6 +55,7 @@ double BinomialCRREngine::value_from_tree(const core::OptionSpec& spec,
 
 PriceOutputs BinomialCRREngine::price(const core::OptionSpec& spec,
                                       const core::OptionParams& params) const {
+    core::validate_strike(spec.payoff.strike, params);
     if (spec.exercise == core::ExerciseStyle::American) {
         return priceAmerican(spec, params);
     }

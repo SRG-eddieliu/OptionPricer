@@ -24,7 +24,7 @@ class BaseMCEngine : public PricingEngine {
                           std::uint64_t seed = 5489u,
                           VarianceReductionMethod vr_method = VarianceReductionMethod::None)
         : paths_(paths),
-          time_steps_(time_steps > 0 ? time_steps : 1),
+          time_steps_(time_steps),
           seed_(seed),
           vr_method_(vr_method) {}
 
@@ -34,6 +34,8 @@ class BaseMCEngine : public PricingEngine {
                        const core::OptionParams& params) const override = 0;
 
    protected:
+    void validateConfiguration() const;
+    double payoffStandardError(const std::vector<double>& payoffs) const;
     std::vector<std::vector<double>> generatePaths(const core::OptionParams& params) const;
 
     virtual void applyVarianceReduction(std::vector<double>& discounted_payoffs,

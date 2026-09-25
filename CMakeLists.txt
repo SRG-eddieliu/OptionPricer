@@ -47,3 +47,15 @@ foreach(example_name IN LISTS OPTION_PRICER_EXAMPLES)
     add_executable(${example_name} example/${example_name}.cpp)
     target_link_libraries(${example_name} PRIVATE option_pricer)
 endforeach()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(numerical_tests tests/numerical_tests.cpp)
+    target_link_libraries(numerical_tests PRIVATE option_pricer)
+    foreach(case_name
+        analytical_prices_and_parity analytical_greeks zero_volatility_and_expiry
+        invalid_inputs tree_convergence american_exercise monte_carlo_intervals
+        variance_reduction lsmc_time_zero lsmc_tree_reference barrier_parity)
+        add_test(NAME ${case_name} COMMAND numerical_tests --run_test=${case_name})
+    endforeach()
+endif()

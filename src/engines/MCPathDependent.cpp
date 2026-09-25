@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "math/Stats.hpp"
+#include "core/Validation.hpp"
 
 namespace engines {
 namespace {
@@ -34,6 +35,11 @@ bool barrier_hit(const std::vector<double>& path, double barrier, core::BarrierT
 
 PriceOutputs MCPathDependentEngine::price(const core::PathDependentOptionSpec& spec,
                                           const core::OptionParams& params) const {
+    core::validate_strike(spec.strike, params);
+    if (spec.type == core::ExoticType::Barrier &&
+        (!std::isfinite(spec.barrier_level) || spec.barrier_level <= 0)) {
+        throw std::invalid_argument("Barrier must be positive and finite");
+    }
     auto paths = generatePaths(params);
     std::vector<double> discounted;
     discounted.reserve(paths.size());
@@ -62,7 +68,7 @@ PriceOutputs MCPathDependentEngine::price(const core::PathDependentOptionSpec& s
     PriceOutputs outputs{};
     outputs.value = math::stats::mean(discounted);
     outputs.std_dev = math::stats::standard_deviation(discounted);
-    outputs.std_error = math::stats::standard_error(discounted);
+    outputs.std_error = payoffStandardError(discounted);
     return outputs;
 }
 

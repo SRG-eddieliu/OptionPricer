@@ -3,10 +3,40 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <limits>
+#include <stdexcept>
+#include "core/Validation.hpp"
+#include "math/Stats.hpp"
 
 namespace engines {
 
+void BaseMCEngine::validateConfiguration() const {
+    if (paths_ < 2 || time_steps_ == 0) {
+        throw std::invalid_argument("Monte Carlo requires at least two paths and one time step");
+    }
+    if (vr_method_ == VarianceReductionMethod::QuasiMonteCarlo ||
+        vr_method_ == VarianceReductionMethod::Multilevel) {
+        throw std::invalid_argument("Requested variance reduction is not implemented");
+    }
+    const bool paired = vr_method_ == VarianceReductionMethod::AntitheticVariates ||
+                        vr_method_ == VarianceReductionMethod::AntitheticMomentMatching;
+    if (paired && (paths_ < 4 || paths_%2 != 0)) {
+        throw std::invalid_argument("Antithetic sampling requires an even count of at least four paths");
+    }
+}
+
+double BaseMCEngine::payoffStandardError(const std::vector<double>& payoffs) const {
+    if (vr_method_ == VarianceReductionMethod::MomentMatching ||
+        vr_method_ == VarianceReductionMethod::AntitheticMomentMatching) {
+        // Joint moment normalization couples draws; use independent runs for uncertainty.
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    return math::stats::standard_error(payoffs);
+}
+
 std::vector<std::vector<double>> BaseMCEngine::generatePaths(const core::OptionParams& params) const {
+    core::validate_market(params);
+    validateConfiguration();
     std::size_t steps = std::max<std::size_t>(1, time_steps_);
     std::vector<std::vector<double>> paths(paths_, std::vector<double>(steps + 1, params.S));
 
@@ -14,7 +44,7 @@ std::vector<std::vector<double>> BaseMCEngine::generatePaths(const core::OptionP
         return paths;
     }
 
-    if (params.T <= 0.0 || params.sig <= 0.0) {
+    if (params.T <= 0.0) {
         for (auto& path : paths) {
             std::fill(path.begin(), path.end(), params.S);
         }
