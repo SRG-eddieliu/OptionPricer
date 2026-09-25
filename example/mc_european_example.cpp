@@ -27,7 +27,7 @@ int main() {
     std::cout << "Black-Scholes Call baseline: " << std::fixed << std::setprecision(6) << analytic.value << "\n";
 
     for (std::size_t paths : {50000u, 75000u, 100000u}) {
-        engines::MCEuropeanEngine engine(paths, 2024u + static_cast<unsigned int>(paths));
+        engines::MCEuropeanEngine engine(paths, 1, 2024u + static_cast<unsigned int>(paths));
         auto results = engine.price(call, params);
         print_mc(paths, results);
     }

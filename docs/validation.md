@@ -2,6 +2,9 @@
 
 Run `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`, `cmake --build build`, then
 `ctest --test-dir build --output-on-failure`. The suite uses header-only Boost.Test.
+CTest also runs the European MC example with a timeout: its seed is explicitly
+the third constructor argument, not the time-step count. There are 11 numerical
+test groups plus this example smoke test.
 
 ## What the tests establish
 

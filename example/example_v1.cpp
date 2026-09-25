@@ -30,7 +30,7 @@ int main() {
     engines::BSEuropeanAnalytic bs_engine;
     engines::BinomialCRREngine binom_engine(2000, 0.0005);
     engines::TrinomialTreeEngine trinomial_engine(2000, 0.0005);
-    engines::MCEuropeanEngine mc_engine(50000, 1337u);
+    engines::MCEuropeanEngine mc_engine(50000, 1, 1337u);
 
     // ===== SCENARIO 1: EUROPEAN OPTIONS =====
     std::cout << "========== SCENARIO 1: EUROPEAN OPTIONS ==========\n\n";

@@ -2,6 +2,10 @@
 
 Monte Carlo valuation of a European call showing sample mean, standard deviation, and standard error, compared against the Black–Scholes analytic baseline.
 
+The constructor is `MCEuropeanEngine(paths, time_steps, seed)`. This terminal-only
+European example uses **one** exact GBM step; the random seed is the third argument.
+It also runs automatically as a CTest smoke test.
+
 ## Build
 
 ```bash
