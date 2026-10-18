@@ -15,7 +15,7 @@ class BinomialCRREngine : public PricingEngine {
     double bump_size_;
 
   public:
-    // Constructor with number of steps and bump size for Greeks
+    // Steps and minimum log-spot bump for Greeks; stencil is at least one grid spacing.
     explicit BinomialCRREngine(std::size_t steps = 4000, double bump = 0.0005)
         : steps_(steps), bump_size_(bump) {}
 
