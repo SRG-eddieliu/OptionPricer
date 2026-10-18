@@ -1,8 +1,10 @@
 # OptionPricer
 
-**Starpoint Research Group · Derivatives pricing toolkit**
+**Starpoint Research Group · Reusable numerical pricing tool**
 
 A C++20 derivatives pricing project covering analytical formulas, lattice methods, and Monte Carlo simulation.
+
+**Portfolio role:** reusable engineering tool supporting pricing experiments and numerical reference checks. Method explanations and examples also support the company knowledge base.
 
 **Status:** C++20 engineering project with worked examples and 11 automated numerical regression cases. CI builds and tests on Linux and macOS. This is not a production-validated pricing library.
 
