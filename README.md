@@ -1,10 +1,14 @@
 # OptionPricer
 
+**Starpoint Research Group · Derivatives pricing toolkit**
+
 A C++20 derivatives pricing project covering analytical formulas, lattice methods, and Monte Carlo simulation.
 
 **Status:** C++20 engineering project with worked examples and 11 automated numerical regression cases. CI builds and tests on Linux and macOS. This is not a production-validated pricing library.
 
 [![Numerical validation](https://github.com/SRG-eddieliu/OptionPricer/actions/workflows/numerical.yml/badge.svg)](https://github.com/SRG-eddieliu/OptionPricer/actions/workflows/numerical.yml)
+
+[Methods](#implemented-methods) · [Build and run](#build-and-run) · [Numerical validation](docs/validation.md) · [Release notes](RELEASE_NOTES.md)
 
 ## Implemented Methods
 
