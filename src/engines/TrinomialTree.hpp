@@ -8,6 +8,7 @@ namespace engines {
 
 class TrinomialTreeEngine : public PricingEngine {
   public:
+    // The Greek log-spot bump is bounded below by terminal-node spacing.
     explicit TrinomialTreeEngine(std::size_t steps = 4000, double bump = 0.0005)
         : steps_(steps), bump_size_(bump) {}
 

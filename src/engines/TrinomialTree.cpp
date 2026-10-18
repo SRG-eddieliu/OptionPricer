@@ -78,7 +78,12 @@ PriceOutputs TrinomialTreeEngine::price(const core::OptionSpec& spec,
     outputs.value = base;
 
     if (params.S > 0.0 && bump_size_ > 0.0) {
+        // Do not differentiate across a sub-grid payoff kink. The configured
+        // bump is a lower bound; use at least one terminal-node log spacing.
         double log_bump = bump_size_;
+        if (params.T > 0.0 && params.sig > 0.0) {
+            log_bump = std::max(log_bump, params.sig * std::sqrt(3.0 * params.T / static_cast<double>(steps_)));
+        }
         double spot_up = params.S * std::exp(log_bump);
         double spot_down = params.S * std::exp(-log_bump);
         double up = value_from_tree(spec, params, spot_up);

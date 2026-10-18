@@ -55,7 +55,8 @@ if(BUILD_TESTING)
     foreach(case_name
         analytical_prices_and_parity analytical_greeks zero_volatility_and_expiry
         invalid_inputs tree_convergence american_exercise monte_carlo_intervals
-        variance_reduction lsmc_time_zero lsmc_tree_reference barrier_parity)
+        variance_reduction lsmc_time_zero lsmc_tree_reference barrier_parity
+        tree_greeks_resolve_payoff_mesh_and_converge default_tree_gamma_and_submesh_bumps)
         add_test(NAME ${case_name} COMMAND numerical_tests --run_test=${case_name})
     endforeach()
     add_test(NAME european_mc_example COMMAND mc_european_example)

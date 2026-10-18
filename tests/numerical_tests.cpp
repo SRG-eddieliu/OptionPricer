@@ -186,3 +186,44 @@ BOOST_AUTO_TEST_CASE(barrier_parity) {
     double in=path.price(spec,p).value;
     near(out+in,MCEuropeanEngine(4000,20,13).price(option(OptionType::Call),p).value,1e-10);
 }
+
+
+BOOST_AUTO_TEST_CASE(tree_greeks_resolve_payoff_mesh_and_converge) {
+    BSEuropeanAnalytic bs;
+    for (auto p : {OptionParams{100,100,.05,0,.2,1},
+                   OptionParams{90,100,.03,.02,.3,.5},
+                   OptionParams{110,100,.01,.01,.15,2}}) {
+        for (auto type : {OptionType::Call, OptionType::Put}) {
+            auto spec = option(type, p.K);
+            auto exact = bs.price(spec, p);
+            auto coarse_b = BinomialCRREngine(100).price(spec, p);
+            auto fine_b = BinomialCRREngine(800).price(spec, p);
+            auto coarse_t = TrinomialTreeEngine(100).price(spec, p);
+            auto fine_t = TrinomialTreeEngine(800).price(spec, p);
+            near(fine_b.gamma, exact.gamma, 1e-4);
+            near(fine_t.gamma, exact.gamma, 1e-4);
+            near(fine_b.delta, exact.delta, 5e-4);
+            near(fine_t.delta, exact.delta, 5e-4);
+            BOOST_CHECK_LT(std::abs(fine_b.gamma-exact.gamma), std::abs(coarse_b.gamma-exact.gamma));
+            BOOST_CHECK_LT(std::abs(fine_t.gamma-exact.gamma), std::abs(coarse_t.gamma-exact.gamma));
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(default_tree_gamma_and_submesh_bumps) {
+    OptionParams p{100,100,.05,0,.2,1};
+    auto spec = option(OptionType::Call);
+    auto exact = BSEuropeanAnalytic().price(spec,p);
+    auto b = BinomialCRREngine().price(spec,p);
+    auto t = TrinomialTreeEngine().price(spec,p);
+    BOOST_TEST_MESSAGE("Default gamma: BS=" << exact.gamma << " CRR=" << b.gamma << " trinomial=" << t.gamma);
+    near(b.gamma, exact.gamma, 2e-5);
+    near(t.gamma, exact.gamma, 2e-5);
+    auto tiny_b = BinomialCRREngine(800,1e-7).price(spec,p);
+    auto tiny_t = TrinomialTreeEngine(800,1e-7).price(spec,p);
+    near(tiny_b.gamma, BinomialCRREngine(800).price(spec,p).gamma, 1e-10);
+    near(tiny_t.gamma, TrinomialTreeEngine(800).price(spec,p).gamma, 1e-10);
+    auto american = option(OptionType::Call,100,ExerciseStyle::American);
+    near(BinomialCRREngine(800).price(american,p).gamma,tiny_b.gamma,1e-10);
+    near(TrinomialTreeEngine(800).price(american,p).gamma,tiny_t.gamma,1e-10);
+}
